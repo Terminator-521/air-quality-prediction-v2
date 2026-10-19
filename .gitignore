@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+.ipynb_checkpoints/
+venv/
+.venv/
+*.egg-info/
+.streamlit/
+.pytest_cache/
+.pptx_build/
+data/forecast_tracking.sqlite
+data/air_quality.sqlite
+data/air_quality.sqlite-shm
+data/air_quality.sqlite-wal

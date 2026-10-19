@@ -1,0 +1,12 @@
+# Python 3.10 or newer is required. SQLite support is provided by Python's
+# standard library (sqlite3), so the local database adds no package dependency.
+pandas
+numpy
+scikit-learn
+matplotlib
+seaborn
+streamlit
+joblib
+requests
+plotly
+# optional, only to run the tests:  pip install pytest

@@ -1,0 +1,221 @@
+{
+  "evaluation": "chronological holdout: final 20% of dates",
+  "train_end_date": "2019-11-07",
+  "test_start_date": "2019-11-08",
+  "train_rows": 23643,
+  "test_rows": 5888,
+  "rows": 5888,
+  "mae": 19.87,
+  "r2": 0.859,
+  "cpcb_category_accuracy": 0.734,
+  "breakdown_by_city": {
+    "Ahmedabad": {
+      "rows": 237,
+      "mae": 65.91,
+      "r2": 0.768,
+      "cpcb_category_accuracy": 0.549
+    },
+    "Aizawl": {
+      "rows": 113,
+      "mae": 22.9,
+      "r2": -0.623,
+      "cpcb_category_accuracy": 0.664
+    },
+    "Amaravati": {
+      "rows": 237,
+      "mae": 16.26,
+      "r2": 0.721,
+      "cpcb_category_accuracy": 0.595
+    },
+    "Amritsar": {
+      "rows": 237,
+      "mae": 19.56,
+      "r2": 0.71,
+      "cpcb_category_accuracy": 0.768
+    },
+    "Bengaluru": {
+      "rows": 237,
+      "mae": 7.62,
+      "r2": 0.728,
+      "cpcb_category_accuracy": 0.886
+    },
+    "Bhopal": {
+      "rows": 237,
+      "mae": 16.16,
+      "r2": 0.859,
+      "cpcb_category_accuracy": 0.776
+    },
+    "Brajrajnagar": {
+      "rows": 237,
+      "mae": 46.11,
+      "r2": -1.928,
+      "cpcb_category_accuracy": 0.688
+    },
+    "Chandigarh": {
+      "rows": 237,
+      "mae": 14.81,
+      "r2": 0.84,
+      "cpcb_category_accuracy": 0.684
+    },
+    "Chennai": {
+      "rows": 237,
+      "mae": 18.02,
+      "r2": 0.229,
+      "cpcb_category_accuracy": 0.734
+    },
+    "Coimbatore": {
+      "rows": 237,
+      "mae": 15.27,
+      "r2": 0.114,
+      "cpcb_category_accuracy": 0.705
+    },
+    "Delhi": {
+      "rows": 237,
+      "mae": 18.65,
+      "r2": 0.947,
+      "cpcb_category_accuracy": 0.776
+    },
+    "Ernakulam": {
+      "rows": 162,
+      "mae": 10.81,
+      "r2": 0.417,
+      "cpcb_category_accuracy": 0.71
+    },
+    "Gurugram": {
+      "rows": 237,
+      "mae": 19.79,
+      "r2": 0.914,
+      "cpcb_category_accuracy": 0.814
+    },
+    "Guwahati": {
+      "rows": 237,
+      "mae": 22.71,
+      "r2": 0.929,
+      "cpcb_category_accuracy": 0.633
+    },
+    "Hyderabad": {
+      "rows": 237,
+      "mae": 10.6,
+      "r2": 0.875,
+      "cpcb_category_accuracy": 0.895
+    },
+    "Jaipur": {
+      "rows": 237,
+      "mae": 11.89,
+      "r2": 0.714,
+      "cpcb_category_accuracy": 0.865
+    },
+    "Jorapokhar": {
+      "rows": 237,
+      "mae": 23.52,
+      "r2": 0.511,
+      "cpcb_category_accuracy": 0.776
+    },
+    "Kochi": {
+      "rows": 162,
+      "mae": 18.33,
+      "r2": 0.267,
+      "cpcb_category_accuracy": 0.796
+    },
+    "Kolkata": {
+      "rows": 237,
+      "mae": 13.61,
+      "r2": 0.947,
+      "cpcb_category_accuracy": 0.755
+    },
+    "Lucknow": {
+      "rows": 237,
+      "mae": 21.31,
+      "r2": 0.926,
+      "cpcb_category_accuracy": 0.797
+    },
+    "Mumbai": {
+      "rows": 237,
+      "mae": 10.22,
+      "r2": 0.936,
+      "cpcb_category_accuracy": 0.857
+    },
+    "Patna": {
+      "rows": 237,
+      "mae": 24.25,
+      "r2": 0.907,
+      "cpcb_category_accuracy": 0.717
+    },
+    "Shillong": {
+      "rows": 237,
+      "mae": 17.64,
+      "r2": 0.378,
+      "cpcb_category_accuracy": 0.388
+    },
+    "Talcher": {
+      "rows": 237,
+      "mae": 24.05,
+      "r2": 0.835,
+      "cpcb_category_accuracy": 0.734
+    },
+    "Thiruvananthapuram": {
+      "rows": 237,
+      "mae": 8.98,
+      "r2": 0.73,
+      "cpcb_category_accuracy": 0.776
+    },
+    "Visakhapatnam": {
+      "rows": 237,
+      "mae": 15.93,
+      "r2": 0.743,
+      "cpcb_category_accuracy": 0.722
+    }
+  },
+  "breakdown_by_season": {
+    "rest_of_year": {
+      "rows": 5359,
+      "mae": 19.48,
+      "r2": 0.846,
+      "cpcb_category_accuracy": 0.732
+    },
+    "crop_burning_season": {
+      "rows": 529,
+      "mae": 23.82,
+      "r2": 0.897,
+      "cpcb_category_accuracy": 0.754
+    }
+  },
+  "breakdown_by_actual_aqi_band": {
+    "Good": {
+      "rows": 637,
+      "mae": 17.72,
+      "r2": -3.337,
+      "cpcb_category_accuracy": 0.177
+    },
+    "Moderate": {
+      "rows": 2010,
+      "mae": 19.23,
+      "r2": 0.05,
+      "cpcb_category_accuracy": 0.815
+    },
+    "Poor": {
+      "rows": 515,
+      "mae": 32.25,
+      "r2": -1.527,
+      "cpcb_category_accuracy": 0.726
+    },
+    "Satisfactory": {
+      "rows": 2336,
+      "mae": 14.29,
+      "r2": -3.528,
+      "cpcb_category_accuracy": 0.823
+    },
+    "Severe": {
+      "rows": 93,
+      "mae": 94.43,
+      "r2": 0.389,
+      "cpcb_category_accuracy": 0.699
+    },
+    "Very Poor": {
+      "rows": 297,
+      "mae": 27.92,
+      "r2": -2.435,
+      "cpcb_category_accuracy": 0.7
+    }
+  }
+}

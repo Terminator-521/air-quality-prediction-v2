@@ -179,3 +179,27 @@ def daily_forecast_summary(forecast: pd.DataFrame) -> pd.DataFrame:
     )
     daily["Category"] = daily["AQI average"].map(aqi_to_bucket)
     return daily[columns].reset_index(drop=True)
+
+
+def pollutant_trend_summary(current: pd.Series, forecast: pd.DataFrame) -> pd.DataFrame:
+    """Compare current concentrations with the next 24 hours, preserving units."""
+    units = {"PM2.5": "µg/m³", "PM10": "µg/m³", "NO2": "µg/m³",
+             "SO2": "µg/m³", "O3": "µg/m³", "CO": "mg/m³"}
+    columns = ["Pollutant", "Current", "Next 24h avg", "Trend", "Unit"]
+    if forecast.empty:
+        return pd.DataFrame(columns=columns)
+    horizon = forecast[forecast["time"] <= forecast["time"].min() + pd.Timedelta(hours=24)]
+    rows = []
+    for pollutant, unit in units.items():
+        now_value = current.get(pollutant)
+        values = horizon[pollutant].dropna()
+        if pd.isna(now_value) or values.empty:
+            direction, average = "Unavailable", None
+        else:
+            average = float(values.mean())
+            delta = average - float(now_value)
+            threshold = max(abs(float(now_value)) * 0.05, 0.01)
+            direction = "Rising" if delta > threshold else "Falling" if delta < -threshold else "Stable"
+        rows.append({"Pollutant": pollutant, "Current": now_value, "Next 24h avg": average,
+                     "Trend": direction, "Unit": unit})
+    return pd.DataFrame(rows, columns=columns)

@@ -70,3 +70,17 @@ def test_daily_forecast_summary_pairs_aqi_with_pollutant_estimates():
     assert daily.loc[0, "PM2.5 (µg/m³)"] == 30
     assert daily.loc[0, "CO (mg/m³)"] == 0.4
     assert daily.loc[1, "Category"] == "Poor"
+
+
+def test_pollutant_trend_summary_compares_next_day_to_current():
+    current = pd.Series({"PM2.5": 20.0, "PM10": 40.0, "NO2": 10.0,
+                         "SO2": 5.0, "O3": 30.0, "CO": 0.4})
+    forecast = pd.DataFrame({
+        "time": pd.to_datetime(["2026-10-20 12:00", "2026-10-20 18:00"]),
+        "PM2.5": [30.0, 32.0], "PM10": [32.0, 34.0], "NO2": [10.0, 10.0],
+        "SO2": [5.0, 5.0], "O3": [30.0, 30.0], "CO": [0.4, 0.4],
+    })
+    trends = live_data.pollutant_trend_summary(current, forecast).set_index("Pollutant")
+    assert trends.loc["PM2.5", "Trend"] == "Rising"
+    assert trends.loc["PM10", "Trend"] == "Falling"
+    assert trends.loc["CO", "Unit"] == "mg/m³"

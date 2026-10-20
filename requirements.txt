@@ -9,4 +9,6 @@ streamlit
 joblib
 requests
 plotly
+psycopg[binary]
+mysql-connector-python
 # optional, only to run the tests:  pip install pytest

@@ -7,14 +7,13 @@ Forest AQI model trained on 5 years of Indian CPCB station data (26 cities,
 The dashboard currently focuses on live estimates, an India map/place comparison,
 and data-source status.
 
-## What changed from the first version
+## Features
 
 - **292 places, 2015–2025 history.** The Kaggle "India AQI" daily dataset
   (Apr 2022 – Apr 2025, 32 states/UTs) is merged with the original 26-city
   data. The Live tab includes a picker for Indian places, while India Map &
   Compare shows the latest available historical AQI and compares places.
 
-- **Italy dataset removed.** The project is now India-focused end to end.
 - **Live data added.** [Open-Meteo](https://open-meteo.com) provides a
   completely free air-quality + geocoding API — no signup, no API key,
   no rate-limit token. Type any place name and the dashboard fetches its
@@ -25,11 +24,20 @@ and data-source status.
   levels through our own CPCB-trained model to produce an **Indian-style
   AQI forecast** for the next several days — not just a snapshot of today.
 - **Frontend redesign.** Custom-styled metric cards, colored AQI badges,
-  and interactive Plotly charts (hover tooltips, shaded forecast regions)
-  replace the earlier static matplotlib images and plain `st.metric` calls.
-- **Focused dashboard.** The crop-burning analysis, city-history explorer and
-  AI assistant tabs have been removed. Historical data remains available to
-  the map/comparison view and the live tab's historical context.
+  an accessible light/dark appearance toggle, and interactive Plotly charts
+  (hover tooltips, shaded forecast regions) make the dashboard easier to scan.
+- **Forecast quality and usability.** The dashboard shows retrieval time,
+  available forecast hours, missing-data caveats, pollutant trends, matured
+  forecast comparisons, and a downloadable AQI/pollutant CSV.
+- **Monitor validation and forecast diagnostics.** When a licensed monitor feed
+  is configured, paired model/monitor snapshots are stored and summarized.
+  Forecast revision MAE is also grouped by place and lead-time band.
+- **Saved places and email alerts.** Save locations for the current browser
+  session and optionally subscribe an email address to a daily AQI threshold
+  alert from the scheduled collector.
+- **Background collection.** A standalone collector can run on a schedule and
+  write observations and forecast snapshots to SQLite, managed PostgreSQL, or
+  managed MySQL.
 
 ## Project structure
 
@@ -47,16 +55,17 @@ air_quality_project/
 ├── eda_india.py                # exploratory plots + crop-burning analysis
 ├── train_model_india.py        # trains the AQI regressor + writes evaluation metrics
 ├── dashboard.py                # Streamlit app (3 tabs, see below)
-├── database.py                 # SQLite storage, historical imports and training data
-├── forecast_tracker.py         # forecast-revision tracking in the same SQLite database
+├── database.py                 # SQLite/PostgreSQL/MySQL storage and training data
+├── forecast_tracker.py         # forecast-revision tracking in the shared database
+├── collector.py                # scheduled, unattended forecast/data collection
+├── notifications.py            # optional SMTP AQI alert emails
 ├── station_data.py             # optional approved official-monitor connector
 ├── tests/                      # pytest suite (no network / API key needed)
 └── requirements.txt
 ```
 
-`database.py` uses Python's built-in `sqlite3` module, so no separate database
-driver is needed for local use. The current implementation is SQLite-only; it
-does not yet support PostgreSQL or an independent scheduled collector.
+SQLite is used by default for local development. Set `DATABASE_URL` to a hosted
+PostgreSQL or MySQL connection URL to share data across the dashboard and collector.
 
 ## Setup
 
@@ -95,18 +104,21 @@ streamlit run dashboard.py
    - A map marker and the latest pollutant estimate
    - Our model's predicted AQI value + category (Good ... Severe) for
      right now
-   - A chart of recent actual AQI plus a several-day-ahead forecast,
+   - A chart of recent model estimates plus a several-day-ahead forecast,
      built by running Open-Meteo's forecasted pollutant levels through
      our trained model
    - A daily forecast table pairing average/peak model-predicted AQI and
      category with Open-Meteo's forecast PM2.5, PM10, NO2, SO2, O3 and CO levels
-   - A pollutant breakdown bar chart (PM2.5, PM10, NO2, SO2, O3, CO)
-   - Weather context, in-browser threshold alerts, forecast-revision tracking,
-     and an optional approved official-monitor comparison
+   - CSV download, pollutant concentration/trend breakdown, retrieval time,
+     forecast coverage and missing-data caveats
+   - Session-saved places, in-browser threshold alerts, scheduled email alerts,
+     forecast-versus-later-model comparisons, and optional approved
+     official-monitor comparison
 2. **🗺️ India Map & Compare** — view latest historical AQI records by place
    and compare up to three places.
 3. **ℹ️ Data Sources & Status** — data provenance, file freshness, model
-   evaluation and official-monitor connection status.
+   evaluation, monitor comparison MAE, and forecast revision MAE by place and
+   forecast lead time.
 
 ## How the live prediction pipeline works
 
@@ -122,9 +134,10 @@ streamlit run dashboard.py
 
 ## Local database and retraining
 
-SQLite stores the bundled historical data, live pollutant estimates, forecast
-snapshots, official-monitor readings when configured, and model run metadata in
-`data/air_quality.sqlite`. The historical import runs once and is safe to repeat:
+The configured database stores bundled historical data, live pollutant
+estimates, forecast snapshots, official-monitor readings when configured, and
+model run metadata. SQLite is the default at `data/air_quality.sqlite`; set
+`DATABASE_URL` for PostgreSQL or MySQL. The historical import runs once and is safe to repeat:
 
 ```bash
 python -m database init
@@ -145,18 +158,16 @@ python train_model_india.py
 
 Training reads only rows explicitly marked verified and eligible, writes the
 regressor/evaluation report, saves a dated model artifact under `models/`, and
-records the model version, features, data count and metrics in SQLite. Do not use
+records the model version, features, data count and metrics in the database. Do not use
 predicted AQI as a training label.
 
 ### Automatic collection and deployment
 
-The database retains data across dashboard visits, but collection is **not yet
-continuous in the background**. A live lookup is stored when someone uses the
-Live tab; forecast snapshots and optional monitor readings are also recorded
-when their respective dashboard features run. Merely keeping the app deployed
-does not trigger periodic collection. The 2022–2025 historical CSV is imported
-into SQLite on initialization, while the database file itself is local by
-default.
+The dashboard can store lookups, but scheduled collection is handled separately
+by `collector.py`; it does not depend on a person opening the dashboard. The
+repository includes a GitHub Actions workflow that runs hourly and can also be
+started manually. It is enabled after configuring the repository variables and
+secrets described below.
 
 For a small single-instance demo on a host that supports persistent disks, set
 `AQI_DATABASE_PATH` to a file on the mounted disk (for example,
@@ -165,16 +176,46 @@ host preserves that mounted path through restarts and deployments. Do not put
 the database in an ephemeral application directory or run multiple app
 instances against the same SQLite file.
 
-For unattended hourly collection in a production deployment, the intended
-architecture is a dashboard plus a scheduled collector sharing a managed
-database such as PostgreSQL. This repository is not deployment-ready for that
-architecture yet: database access is currently SQLite-specific, and there is
-no standalone collector or tracked-location schedule. Those pieces, along with
-a one-time migration/import of the existing SQLite history, must be implemented
-before configuring a cloud cron job. Keep API credentials in the hosting
-provider's secret/environment settings, not in source control. Do not train on
+For GitHub Actions, create a managed PostgreSQL or MySQL database, then add these in the
+repository's Settings → Secrets and variables → Actions:
+
+- Secret `DATABASE_URL`: the provider's connection URL. PostgreSQL commonly uses
+  `postgresql://user:password@host:5432/database`; MySQL uses
+  `mysql://user:password@host:3306/database`. Use the TLS/SSL settings required
+  by your database host, URL-encode special characters in credentials, and keep
+  this value private.
+- Variable `AQI_COLLECTOR_LOCATIONS`: JSON array, for example
+  `[ {"name":"Delhi","admin1":"Delhi","country":"India","latitude":28.6139,"longitude":77.209} ]`.
+- Secrets `AQI_SMTP_HOST`, `AQI_SMTP_PORT`, `AQI_SMTP_USER`,
+  `AQI_SMTP_PASSWORD`, and `AQI_ALERT_FROM` for scheduled alert email delivery.
+- Secret `CPCB_AQI_URL` for an approved monitor endpoint if you want the
+  scheduled collector to capture model/monitor pairs.
+
+Saved places stay in the current Streamlit browser session. Email alert
+subscriptions are stored in the shared database; the collector includes those
+coordinates automatically and checks them hourly, sending at most one email per
+subscription per UTC day after its threshold is crossed. Configure SMTP settings
+as GitHub Actions secrets (and keep the dashboard connected to the same
+database). Email ownership is not verified in this demo, so only subscribe an
+address you control; put a public deployment behind authentication or add
+verified-email signup before opening subscriptions to arbitrary visitors.
+
+The official-monitor panel records paired snapshots when a licensed endpoint is
+configured. Its MAE is a useful diagnostic, but time and distance differences
+mean it is not a controlled model-validation study. The city/lead-time table is
+forecast-to-later-model comparison, not ground-truth accuracy.
+
+The first collector run initializes the schema and imports the bundled history.
+To copy locally collected SQLite records as well, run
+`python -m database migrate-sqlite data/air_quality.sqlite` with `DATABASE_URL`
+pointing at the destination first. Keep database credentials out of source
+control. Use one database for the dashboard and collector. Do not train on
 Open-Meteo predictions; only independently verified observations with valid AQI
 labels should be marked training-eligible.
+
+The included workflow runs at minute 17 of every hour (GitHub schedule timing
+can be delayed). For a different host, set the same environment variables and
+schedule `python collector.py` with its cron or managed scheduler.
 
 Those pollutant estimates (renamed and unit-converted — Open-Meteo reports
 CO in µg/m³, but the CPCB training data uses mg/m³, so it's divided by
